@@ -15,11 +15,16 @@ export default function Success() {
   const [timer, setTimer] = useState(3); // Countdown timer state
   const [loading, setLoading] = useState(true); // Loader state
 
+  const BASE_URL =
+    import.meta.env.MODE === "development"
+      ? import.meta.env.VITE_API_BASE_URL_DEV
+      : import.meta.env.VITE_API_BASE_URL;
+
   useEffect(() => {
     const handleJoinMembership = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8080/membership/register/${targetUserId}`,
+          `${BASE_URL}/membership/register/${targetUserId}`,
           {
             method: "POST",
             headers: {

@@ -20,6 +20,11 @@ export default function CreateTip() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
 
+  const BASE_URL =
+    import.meta.env.MODE === "development"
+      ? import.meta.env.VITE_API_BASE_URL_DEV
+      : import.meta.env.VITE_API_BASE_URL;
+
   const isMarketOpen = () => {
     const now = new Date();
     const hours = now.getHours();
@@ -27,11 +32,11 @@ export default function CreateTip() {
 
     // return (hours < 8 || (hours === 8 && minutes < 45)) || (hours >= 17);
     return true;
-  }
+  };
   useEffect(() => {
     async function fetchStocks() {
       try {
-        const response = await axios.get("http://localhost:8080/stocks");
+        const response = await axios.get(`${BASE_URL}/stocks`);
         setStockList(response.data);
         setFilteredStocks(response.data);
       } catch (error) {
@@ -44,11 +49,9 @@ export default function CreateTip() {
       if (!userId) return;
 
       try {
-        const response = await fetch(
-          `http://localhost:8080/users/${userId}`
-        );
-        let data = await response.json()
-        console.log(data)
+        const response = await fetch(`${BASE_URL}/users/${userId}`);
+        let data = await response.json();
+        console.log(data);
         if (data && data.monetized) {
           setIsMonetized(true);
         } else {
@@ -120,7 +123,6 @@ export default function CreateTip() {
     }));
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -156,7 +158,7 @@ export default function CreateTip() {
 
     let model_price;
     try {
-      let response = await fetch("http://localhost:8080/proxy/predict", {
+      let response = await fetch(`${BASE_URL}/proxy/predict`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -188,7 +190,7 @@ export default function CreateTip() {
     console.log("Submitting tip data:", tipData);
 
     try {
-      const response = await fetch("http://localhost:8080/tips", {
+      const response = await fetch(`${BASE_URL}/tips`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -206,7 +208,6 @@ export default function CreateTip() {
       console.error("Error submitting tip:", error);
     }
   };
-
 
   return (
     <div className="container mx-auto p-4">
@@ -235,10 +236,11 @@ export default function CreateTip() {
                     <li
                       key={stock.id}
                       onClick={() => handleStockSelect(stock.stockName)}
-                      className={`px-3 py-2 cursor-pointer ${highlightedIndex === index
+                      className={`px-3 py-2 cursor-pointer ${
+                        highlightedIndex === index
                           ? "bg-blue-100"
                           : "hover:bg-gray-100"
-                        }`}
+                      }`}
                     >
                       {stock.stockName}
                     </li>
@@ -316,7 +318,9 @@ export default function CreateTip() {
               <div className="mt-4">
                 <button
                   type="submit"
-                  onClick={() => setFormData((prev) => ({ ...prev, exclusive: true }))}
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, exclusive: true }))
+                  }
                   className="w-full py-2 px-4 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:ring-2 focus:ring-purple-500"
                 >
                   Create Exclusive Tips

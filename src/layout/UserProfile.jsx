@@ -12,12 +12,17 @@ export default function UserProfile() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isMember, setIsMember] = useState(false);
 
+  const BASE_URL =
+    import.meta.env.MODE === "development"
+      ? import.meta.env.VITE_API_BASE_URL_DEV
+      : import.meta.env.VITE_API_BASE_URL;
+
   useEffect(() => {
     // Fetch current user info
     const fetchCurrentUser = async () => {
       try {
         let userId1 = localStorage.getItem("userId");
-        const response = await fetch(`http://localhost:8080/users/${userId1}`);
+        const response = await fetch(`${BASE_URL}/users/${userId1}`);
         const data = await response.json();
         setCurrentUser(data);
         console.log("Current user:", data);
@@ -28,7 +33,7 @@ export default function UserProfile() {
 
     const fetchUserProfile = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/users/${userId}`);
+        const response = await fetch(`${BASE_URL}/users/${userId}`);
         const data = await response.json();
         setUserProfile(data);
       } catch (error) {
@@ -38,16 +43,13 @@ export default function UserProfile() {
 
     const fetchUserTips = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:8080/users/${userId}/tips`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const response = await fetch(`${BASE_URL}/users/${userId}/tips`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         const data = await response.json();
         setUserTips(data);
       } catch (error) {
@@ -57,16 +59,13 @@ export default function UserProfile() {
 
     const fetchSubscriptions = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:8080/users/subscriptions",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const response = await fetch(`${BASE_URL}/users/subscriptions`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         const data = await response.json();
         setIsSubscribed(
           data.subscriptions.some((sub) => sub.user_id === userId)
@@ -103,7 +102,7 @@ export default function UserProfile() {
   // Handle subscribe action
   const handleSubscribe = async () => {
     try {
-      await fetch(`http://localhost:8080/users/subscribe/${userProfile.id}`, {
+      await fetch(`${BASE_URL}/users/subscribe/${userProfile.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,7 +117,7 @@ export default function UserProfile() {
 
   const handleUnsubscribe = async () => {
     try {
-      await fetch(`http://localhost:8080/users/unsubscribe/${userProfile.id}`, {
+      await fetch(`${BASE_URL}/users/unsubscribe/${userProfile.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -131,38 +130,39 @@ export default function UserProfile() {
     }
   };
 
-  const stripePromise = loadStripe(
-    "pk_test_51R6njpRG0L0EXLHw3ouxNLWsqjyy6VtvISnrPsHBijdVTmX2nqoDamPQwEz64pJDIBegXFEZzzVVzGqlGHIo2zb400FBJMje8w"
-  );
+  const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
   async function handlePayment(targetUserId) {
     try {
-      const response = await fetch(`http://localhost:8080/membership/create-checkout-session/${userId}`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "application/json",
-        },
-      });
-  
+      const response = await fetch(
+        `${BASE_URL}/membership/create-checkout-session/${userId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
       const { sessionId } = await response.json();
       const stripe = await stripePromise;
-  
+
       // Redirect to Stripe Checkout with sessionId and targetUserId as query params
       await stripe.redirectToCheckout({ sessionId });
-  
+
       // Attach targetUserId in the redirect URL
       window.location.href = `/success?session_id=${sessionId}&target_user_id=${targetUserId}`;
     } catch (error) {
       console.error("Error during payment:", error);
     }
-  };
+  }
 
   // Handle join membership action
   const handleJoin = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8080/membership/register/${userProfile.id}`,
+        `${BASE_URL}/membership/register/${userProfile.id}`,
         {
           method: "POST",
           headers: {

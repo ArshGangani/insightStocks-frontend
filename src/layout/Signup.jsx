@@ -39,7 +39,8 @@ const Signup = () => {
       setConfirmPassword("");
       setAgreeTerms(false)
       setShowPassword(false);
-      const response=await axios.post('http://localhost:8080/users/register',data);
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      const response=await axios.post(`${BASE_URL}/users/register`, data);
       const token=response.data.token;
       const userId=response.data.userId;
       localStorage.setItem('token',token);

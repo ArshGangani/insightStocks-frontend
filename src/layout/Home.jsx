@@ -8,24 +8,28 @@ export default function Home() {
   const [topStocks, setTopStocks] = useState([]);
   const { currentUser } = useAuth();
 
+  const BASE_URL =
+    import.meta.env.MODE === "development"
+      ? import.meta.env.VITE_API_BASE_URL_DEV
+      : import.meta.env.VITE_API_BASE_URL;
+
   useEffect(() => {
     const fetchTips = async () => {
       if (!currentUser) return;
 
       try {
-        
         let allTips = [];
-        const tipsRes = await fetch(
-            `http://localhost:8080/tips`
-        );
+        const tipsRes = await fetch(`${BASE_URL}/tips`);
         const userTips = await tipsRes.json();
-        
+
         allTips = [...allTips, ...userTips];
         console.log(allTips);
         let currentUser = localStorage.getItem("userId");
         allTips = allTips.filter((tip) => tip.user.user_id !== currentUser);
         // Sort tips by created_on (newest first)
-        allTips.sort((a, b) => new Date(a.prediction_date) - new Date(b.prediction_date));
+        allTips.sort(
+          (a, b) => new Date(a.prediction_date) - new Date(b.prediction_date)
+        );
 
         setTips(allTips);
       } catch (error) {
@@ -42,22 +46,21 @@ export default function Home() {
         const res = await fetch("/api/stocks");
         const data = await res.json();
         console.log(data);
-  
+
         const formatted = data.map((stock) => ({
           symbol: stock.stockName,
           name: stock.stockName, // you can customize this if full name is separate
           lastClosedPrice: stock.previousClosingPrice,
         }));
-  
+
         setTopStocks(formatted);
       } catch (error) {
         console.error("Error fetching stock data:", error);
       }
     };
-  
+
     fetchTopStocks();
   }, []);
-  
 
   return (
     <div className="flex h-screen overflow-hidden">

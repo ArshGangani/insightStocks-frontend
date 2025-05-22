@@ -8,6 +8,11 @@ export default function Profile() {
   const [userTips, setUserTips] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
 
+  const BASE_URL =
+    import.meta.env.MODE === "development"
+      ? import.meta.env.VITE_API_BASE_URL_DEV
+      : import.meta.env.VITE_API_BASE_URL;
+
   useEffect(() => {
     fetchProfile();
     fetchUserTips();
@@ -15,8 +20,8 @@ export default function Profile() {
 
   const fetchProfile = async () => {
     try {
-      const userId = localStorage.getItem("userId");
-      const response = await fetch(`http://localhost:8080/users/${userId}`); // replace {userId} with the actual user ID
+      const userId = localStorage.getItem("userId");  
+      const response = await fetch(`${BASE_URL}/users/${userId}`);
       const data = await response.json();
       setProfile({
         username: data.username,
@@ -35,20 +40,17 @@ export default function Profile() {
   const fetchUserTips = async () => {
     try {
       let userId = localStorage.getItem("userId");
-      const response = await fetch(
-        `http://localhost:8080/users/${userId}/tips`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      ); // replace with your tips API endpoint
+      const response = await fetch(`${BASE_URL}/users/${userId}/tips`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }); // replace with your tips API endpoint
       const data = await response.json();
       console.log("Fetched tips:", data);
       // console.log("Fetched tips:", data);
-      setUserTips(data.filter(tip => tip !== null)); // Remove null values
+      setUserTips(data.filter((tip) => tip !== null)); // Remove null values
     } catch (error) {
       console.error("Error fetching user tips:", error);
     }
@@ -56,7 +58,7 @@ export default function Profile() {
 
   const handleDelete = async (tipId) => {
     try {
-      const response = await fetch(`http://localhost:8080/tips/${tipId}`, {
+      const response = await fetch(`${BASE_URL}/tips/${tipId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -67,7 +69,6 @@ export default function Profile() {
       if (response.ok) {
         toast.success("Tip Deleted Successfully");
         window.location.reload();
-
       } else {
         console.error("Failed to delete tip");
       }
@@ -96,7 +97,7 @@ export default function Profile() {
       }
     }
     console.log("Request body:", requestBody);
-    fetch(`http://localhost:8080/users/${userId}`, {
+    fetch(`${BASE_URL}/users/${userId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

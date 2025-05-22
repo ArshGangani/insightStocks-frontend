@@ -8,61 +8,64 @@ export default function ExclusiveTipsPage() {
   const [topStocks, setTopStocks] = useState([]);
   const { currentUser } = useAuth();
 
-  useEffect(() => {
-      const fetchTips = async () => {
-        if (!currentUser) return;
-  
-        try {
-          
-          let allTips = [];
-          let currentUser = localStorage.getItem("userId");
-          const tipsRes = await fetch(`http://localhost:8080/tips/exclusive` , {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`
-                },
-              }
-          );
-          const userTips = await tipsRes.json();
-          console.log(userTips)
-          
-          allTips = [...allTips, ...userTips];
-          console.log(allTips);
-          allTips = allTips.filter((tip) => tip.user !== currentUser);
-          // Sort tips by created_on (newest first)
-          allTips.sort((a, b) => new Date(b.created_on) - new Date(a.created_on));
-  
-          setTips(allTips);
-        } catch (error) {
-          console.error("Error fetching tips:", error);
-        }
-      };
-  
-      fetchTips();
-    }, [currentUser]);
+  const BASE_URL =
+    import.meta.env.MODE === "development"
+      ? import.meta.env.VITE_API_BASE_URL_DEV
+      : import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
-      const fetchTopStocks = async () => {
-        try {
-          const res = await fetch("/api/stocks");
-          const data = await res.json();
-          console.log(data);
-    
-          const formatted = data.map((stock) => ({
-            symbol: stock.stockName,
-            name: stock.stockName, // you can customize this if full name is separate
-            lastClosedPrice: stock.previousClosingPrice,
-          }));
-    
-          setTopStocks(formatted);
-        } catch (error) {
-          console.error("Error fetching stock data:", error);
-        }
-      };
-    
-      fetchTopStocks();
-    }, []);
+    const fetchTips = async () => {
+      if (!currentUser) return;
+
+      try {
+        let allTips = [];
+        let currentUser = localStorage.getItem("userId");
+        const tipsRes = await fetch(`${BASE_URL}/tips/exclusive`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        const userTips = await tipsRes.json();
+        console.log(userTips);
+
+        allTips = [...allTips, ...userTips];
+        console.log(allTips);
+        allTips = allTips.filter((tip) => tip.user !== currentUser);
+        // Sort tips by created_on (newest first)
+        allTips.sort((a, b) => new Date(b.created_on) - new Date(a.created_on));
+
+        setTips(allTips);
+      } catch (error) {
+        console.error("Error fetching tips:", error);
+      }
+    };
+
+    fetchTips();
+  }, [currentUser]);
+
+  useEffect(() => {
+    const fetchTopStocks = async () => {
+      try {
+        const res = await fetch("/api/stocks");
+        const data = await res.json();
+        console.log(data);
+
+        const formatted = data.map((stock) => ({
+          symbol: stock.stockName,
+          name: stock.stockName, // you can customize this if full name is separate
+          lastClosedPrice: stock.previousClosingPrice,
+        }));
+
+        setTopStocks(formatted);
+      } catch (error) {
+        console.error("Error fetching stock data:", error);
+      }
+    };
+
+    fetchTopStocks();
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden">

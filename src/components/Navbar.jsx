@@ -1,6 +1,6 @@
-import { Link, useNavigate } from "react-router-dom"
-import { useState, useEffect } from "react"
-import { toast } from "react-toastify"
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
 const navItems = [
   { name: "Home", href: "/home" },
@@ -9,31 +9,36 @@ const navItems = [
   { name: "Subscriptions", href: "/subscriptions" },
   { name: "Memberships", href: "/memberships" },
   { name: "Profile", href: "/profile" },
-]
+];
 
 export default function Navbar() {
-  const [showPopup, setShowPopup] = useState(false)
-  const [showMembershipPopup, setShowMembershipPopup] = useState(false)
-  const [subscribers, setSubscribers] = useState([])
-  const [members, setMembers] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const navigate = useNavigate()
+  const [showPopup, setShowPopup] = useState(false);
+  const [showMembershipPopup, setShowMembershipPopup] = useState(false);
+  const [subscribers, setSubscribers] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
+  const BASE_URL =
+    import.meta.env.MODE === "development"
+      ? import.meta.env.VITE_API_BASE_URL_DEV
+      : import.meta.env.VITE_API_BASE_URL;
 
   const handleLogout = async () => {
-    localStorage.removeItem("userId")
-    localStorage.removeItem("token")
-    toast.success('Logged out successfully');
-    navigate("/login")
-  }
+    localStorage.removeItem("userId");
+    localStorage.removeItem("token");
+    toast.success("Logged out successfully");
+    navigate("/login");
+  };
 
   useEffect(() => {
-    if (showPopup) fetchSubscribers()
-  }, [showPopup])
+    if (showPopup) fetchSubscribers();
+  }, [showPopup]);
 
   useEffect(() => {
-    if (showMembershipPopup) fetchMembers()
-  }, [showMembershipPopup])
+    if (showMembershipPopup) fetchMembers();
+  }, [showMembershipPopup]);
 
   // Fetch Subscribers List
   const fetchSubscribers = async () => {
@@ -41,22 +46,22 @@ export default function Navbar() {
     setError(null);
     setSubscribers([]);
     let userId = localStorage.getItem("userId");
-  
+
     try {
-      const response = await fetch(`http://localhost:8080/users/subscriptions`, {
+      const response = await fetch(`${BASE_URL}/users/subscriptions`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-  
+
       if (!response.ok) throw new Error("Failed to fetch subscribers");
-  
+
       const data = await response.json();
       console.log(data.subscriptions);
-  
-      setSubscribers(data.subscriptions); 
+
+      setSubscribers(data.subscriptions);
     } catch (error) {
       console.error("Error:", error);
       setError(error.message);
@@ -64,45 +69,44 @@ export default function Navbar() {
       setLoading(false);
     }
   };
-  
 
   // Fetch Membership List
   const fetchMembers = async () => {
-    setLoading(true)
-    setError(null)
-    setMembers([])
-    let userId = localStorage.getItem("userId")
+    setLoading(true);
+    setError(null);
+    setMembers([]);
+    let userId = localStorage.getItem("userId");
     try {
-      const response = await fetch(`http://localhost:8080/users/memberships`, {
+      const response = await fetch(`${BASE_URL}/users/memberships`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-  
+
       if (!response.ok) throw new Error("Failed to fetch members");
-  
+
       let data = await response.json();
       data = data.memberships.map((membership) => membership.user);
       console.log(data);
-  
-      setMembers(data); 
+
+      setMembers(data);
     } catch (error) {
       console.error("Error:", error);
       setError(error.message);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  const handleSubscriptionClick = () => setShowPopup(true)
-  const handleMembershipClick = () => setShowMembershipPopup(true)
+  const handleSubscriptionClick = () => setShowPopup(true);
+  const handleMembershipClick = () => setShowMembershipPopup(true);
   const handleUserClick = (id) => {
-    navigate(`/profile/${id}`)
-    setShowPopup(false)
-    setShowMembershipPopup(false)
-  }
+    navigate(`/profile/${id}`);
+    setShowPopup(false);
+    setShowMembershipPopup(false);
+  };
 
   return (
     <nav className="flex flex-col h-full">
@@ -166,7 +170,7 @@ export default function Navbar() {
         />
       )}
     </nav>
-  )
+  );
 }
 
 // Reusable Popup Component
@@ -205,5 +209,5 @@ function Popup({ title, users, loading, error, onClose, onUserClick }) {
         </button>
       </div>
     </div>
-  )
+  );
 }

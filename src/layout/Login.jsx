@@ -18,7 +18,8 @@ const Login = () => {
         email: email,
         password: password,
       };
-      const response = await axios.post('http://localhost:8080/users/login', data);
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      const response = await axios.post(`${BASE_URL}/users/login`, data);
       const token = response.data.token;
       const userId = response.data.userId;
       localStorage.setItem("token", token);
